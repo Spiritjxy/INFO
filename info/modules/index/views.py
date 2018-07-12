@@ -1,15 +1,29 @@
-from flask import current_app
+from flask import current_app, jsonify
 from flask import render_template
+from flask import session
 
+from info.models import User
+from info.utils.response_code import RET
 from . import index_blue
 from info import redis_store
 
 
 @index_blue.route('/')
 def index():
-    redis_store.set('name', 'jxy')
-    print(redis_store.get('name'))
-    return render_template('news/index.html')
+    # 获取用户
+    user_id = session.get('user_id')
+    user = None
+    if user_id:
+        try:
+            user = User.query.get(user_id)
+        except Exception as e:
+            current_app.logger.error(e)
+
+    data = {
+        'user_info': user.to_dict() if user else ''
+    }
+
+    return render_template('news/index.html', data=data)
 
 
 # 网站logo图片处理,浏览器向每个网站请求数据的时候会默认调用GET 向/favicon.ico接口,获取logo图片
