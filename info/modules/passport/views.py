@@ -16,6 +16,16 @@ from . import passport_blue
 from info.libs.yuntongxun.sms import CCP
 
 
+# 退出登陆
+@passport_blue.route('/logout', methods=["DELETE"])
+def logout():
+    session.pop('user_id', False)
+    session.pop('nick_name', False)
+    session.pop('mobile', False)
+
+    return jsonify(errno=RET.OK, errmsg='退出成功')
+
+
 # 登陆账号
 @passport_blue.route('/login', methods=["POST"])
 def login():
