@@ -2,7 +2,8 @@ from logging.handlers import RotatingFileHandler
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 import redis
-from flask_wtf.csrf import CSRFProtect
+from flask_wtf import CSRFProtect
+from flask_wtf.csrf import generate_csrf
 from flask_session import Session
 from config import config_dict
 import logging
@@ -45,6 +46,13 @@ def create_app(config_name):
     # 注册passport蓝图
     from info.modules.passport import passport_blue
     app.register_blueprint(passport_blue)
+
+    @app.after_request
+    def after_request(resp):
+        # 生成csrf_token
+        csrf_token = generate_csrf()
+        # 往cookie中设置csrf_token
+        resp.set_cookie('csrf_token', csrf_token)
 
     return app
 

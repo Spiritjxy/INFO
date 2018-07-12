@@ -36,7 +36,7 @@ def get_sms_code():
     if not image:
         return jsonify(errno=RET.NODATA, errmsg='图片验证码过期')
     # 判断输入的验证码是否正确
-    if image_code != image:
+    if image_code.upper() != image.upper():
         return jsonify(errno=RET.DATAERR, errmsg='图片验证码不正确')
     # 生成短信验证码
     sms_code = '%06d' % random.randint(0, 999999)
