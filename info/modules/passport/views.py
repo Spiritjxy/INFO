@@ -1,9 +1,11 @@
 import random
 import re
+from datetime import datetime
 
 from flask import current_app, jsonify
 from flask import make_response
 from flask import request
+from flask import session
 
 from info import constants, db
 from info import redis_store
@@ -12,6 +14,37 @@ from info.utils.captcha.captcha import captcha
 from info.utils.response_code import RET
 from . import passport_blue
 from info.libs.yuntongxun.sms import CCP
+
+
+# 登陆账号
+@passport_blue.route('/login', methods=["POST"])
+def login():
+    # 获取参数
+    mobile = request.json.get('mobile')
+    password = request.json.get('password')
+    # 为空校验
+    if not all([mobile, password]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数不完整")
+    # 查询是否有用户
+    try:
+        user = User.query.filter(User.mobile == mobile).first()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg='查询用户失败')
+    if not user:
+        return jsonify(errno=RET.NODATA, errmsg='没有该用户')
+    # 判断密码是否正确
+    if not user.check_passowrd(password):
+        return jsonify(errno=RET.DATAERR, errmsg='密码错误')
+
+    session['user_id'] = user.id
+    session['nick_name'] = user.nick_name
+    session['mobile'] = user.mobile
+
+    # 记录用户最后登陆时间
+    user.last_login = datetime.now()
+
+    return jsonify(errno=RET.OK, errmsg='登陆成功')
 
 
 # 注册账号
@@ -52,6 +85,10 @@ def register():
         current_app.logger.error(e)
         db.session.rollback()
         return jsonify(errno=RET.DBERR, errmsg='保存用户失败')
+
+    session['user_id'] = user.id
+    session['nick_name'] = user.nick_name
+    session['mobile'] = user.mobile
 
     return jsonify(errno=RET.OK, errmsg='注册成功')
 
