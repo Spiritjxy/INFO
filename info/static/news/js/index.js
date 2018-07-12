@@ -73,7 +73,7 @@ function updateNewsData() {
     }
 
     // 发送get请求,获取数据
-    /*
+
     $.get('/newslist',params,function (resp) {
 
         //设置正在加载数据
@@ -87,7 +87,7 @@ function updateNewsData() {
 
             //判断如果是第一页
             //清空原有的数据
-            if(cur_page == 1) $(".list_con").html('');
+            if(cur_page == 1) {$(".list_con").html('');}
 
             // 改变当前的加载页数
             cur_page += 1
@@ -121,6 +121,6 @@ function updateNewsData() {
         }
 
     })
-    */
+
 
 }
