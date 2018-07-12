@@ -7,6 +7,7 @@ from flask_wtf.csrf import CSRFProtect
 from flask_session import Session
 from config import config_dict
 import logging
+from info.modules.index import index_blue
 
 # 创建db，为了别的文件可以导入
 db = SQLAlchemy()
@@ -35,6 +36,9 @@ def create_app(config_name):
 
     # 开启Session
     Session(app)
+
+    # 注册index蓝图
+    app.register_blueprint(index_blue)
 
     return app
 
