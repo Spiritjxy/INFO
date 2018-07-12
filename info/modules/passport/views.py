@@ -5,12 +5,55 @@ from flask import current_app, jsonify
 from flask import make_response
 from flask import request
 
-from info import constants
+from info import constants, db
 from info import redis_store
+from info.models import User
 from info.utils.captcha.captcha import captcha
 from info.utils.response_code import RET
 from . import passport_blue
 from info.libs.yuntongxun.sms import CCP
+
+
+# 注册账号
+@passport_blue.route('/register', methods=["POST"])
+def register():
+    # 获取参数
+    mobile = request.json.get('mobile')
+    smscode = request.json.get('smscode')
+    password = request.json.get('password')
+    # 判空
+    if not all([mobile, smscode, password]):
+        return jsonify(errno=RET.PARAMERR, errmsg='参数不全')
+    # 判断手机号格式
+    if not re.match('1[3456789]\\d{9}', mobile):
+        return jsonify(errno=RET.PARAMERR, errmsg='手机号格式不正确')
+    # 取出短信验证码
+    try:
+        sms_code = redis_store.get('sms_code:%s' % mobile)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg='取出短信验证码失败')
+    # 判断短信验证码是否失效
+    if not sms_code:
+        return jsonify(errno=RET.NODATA, errmsg='短信验证码失效')
+    # 判断短信验证码是否正确
+    if sms_code != smscode:
+        return jsonify(errno=RET.DATAERR, errmsg='短信验证码不正确')
+    # 创建用户对象
+    user = User()
+    user.mobile = mobile
+    user.nick_name = mobile
+    user.password = password
+    # 保存账号到数据库中
+    try:
+        db.session.add(user)
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        db.session.rollback()
+        return jsonify(errno=RET.DBERR, errmsg='保存用户失败')
+
+    return jsonify(errno=RET.OK, errmsg='注册成功')
 
 
 # 发送短信验证码
@@ -46,15 +89,21 @@ def get_sms_code():
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg='保存短信验证码失败')
+
+    # 打印短信验证码代替云通讯
+    print(sms_code)
+
     # 调用云通讯发送短信
-    try:
-        ccp = CCP()
-        result = ccp.send_template_sms(mobile, [sms_code, constants.SMS_CODE_REDIS_EXPIRES / 60], 1)
-    except Exception as e:
-        current_app.logger.error(e)
-        return jsonify(errno=RET.THIRDERR, errmsg='调用云通讯失败')
-    if result != 0:
-        return jsonify(errno=RET.DATAERR, errmsg='发送短信失败')
+    # try:
+    #     ccp = CCP()
+    #     result = ccp.send_template_sms(mobile, [sms_code, constants.SMS_CODE_REDIS_EXPIRES / 60], 1)
+    # except Exception as e:
+    #     current_app.logger.error(e)
+    #     redis_store.delete('sms_code:%s' % mobile)
+    #     return jsonify(errno=RET.THIRDERR, errmsg='调用云通讯失败')
+    # if result != 0:
+    #     redis_store.delete('sms_code:%s' % mobile)
+    #     return jsonify(errno=RET.DATAERR, errmsg='发送短信失败')
 
     return jsonify(errno=RET.OK, errmsg='发送短信成功')
 
