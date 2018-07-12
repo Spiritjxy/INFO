@@ -1,4 +1,5 @@
 # 创建配置类
+import logging
 import redis
 
 
@@ -22,6 +23,9 @@ class Config(object):
     SESSION_PERMANENT = False  # 设置session需要过期
     PERMANENT_SESSION_LIFETIME = 86400 * 2  # 设置session过期时间,单位是秒
 
+    # 日志文件的debug配置
+    LEVEL = logging.DEBUG
+
 
 # 开发者模式配置
 class DevelopConfig(Config):
@@ -32,6 +36,7 @@ class DevelopConfig(Config):
 class ProductConfig(Config):
     # 关闭调试信息
     DEBUG = False
+    LEVEL = logging.ERROR
 
 
 # 测试模式配置
