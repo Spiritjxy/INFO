@@ -8,7 +8,7 @@ class Config(object):
     SECRET_KEY = 'jxy'
 
     # 数据库配置信息
-    SQLALCHEMY_DATABASE_URI = 'mysql://root:mysql@127.0.0.1:3306/infomation'
+    SQLALCHEMY_DATABASE_URI = 'mysql://root:mysql@127.0.0.1:3306/info'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
 
