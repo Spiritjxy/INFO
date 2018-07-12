@@ -31,7 +31,7 @@ def create_app(config_name):
 
     # 创建redis对象
     global redis_store
-    redis_store = redis.StrictRedis(host=Config.REDIS_HOST, port=Config.REDIS_PORT)
+    redis_store = redis.StrictRedis(host=Config.REDIS_HOST, port=Config.REDIS_PORT, decode_responses=True)
 
     # 开启CSRF保护
     CSRFProtect(app)
@@ -53,6 +53,7 @@ def create_app(config_name):
         csrf_token = generate_csrf()
         # 往cookie中设置csrf_token
         resp.set_cookie('csrf_token', csrf_token)
+        return resp
 
     return app
 

@@ -49,7 +49,7 @@ def get_sms_code():
     # 调用云通讯发送短信
     try:
         ccp = CCP()
-        result = ccp.send_template_sms('18516952650', ['1234', 5], 1)
+        result = ccp.send_template_sms(mobile, [sms_code, constants.SMS_CODE_REDIS_EXPIRES / 60], 1)
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.THIRDERR, errmsg='调用云通讯失败')
