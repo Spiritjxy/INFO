@@ -9,6 +9,8 @@ from config import config_dict
 import logging
 
 # 创建db，为了别的文件可以导入
+from info.utils.commons import to_clicks_class
+
 db = SQLAlchemy()
 
 redis_store = None
@@ -54,6 +56,9 @@ def create_app(config_name):
         # 往cookie中设置csrf_token
         resp.set_cookie('csrf_token', csrf_token)
         return resp
+
+    # 添加自定义过滤器
+    app.add_template_filter(to_clicks_class, 'to_clicks_class')
 
     return app
 
