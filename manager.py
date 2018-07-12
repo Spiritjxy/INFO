@@ -3,12 +3,17 @@ from flask_sqlalchemy import SQLAlchemy
 import redis
 from flask_wtf.csrf import CSRFProtect
 from flask_session import Session
+from flask_migrate import Migrate, MigrateCommand
+from flask_script import Manager
 
 app = Flask(__name__)
 
 
 # 创建配置类
 class Config(object):
+    DEBUG = True
+    SECRET_KEY = 'jxy'
+
     # 数据库配置信息
     SQLALCHEMY_DATABASE_URI = 'mysql://root:mysql@127.0.0.1:3306/infomation'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -41,6 +46,11 @@ CSRFProtect(app)
 # 开启Session
 Session(app)
 
+# 数据库迁移配置
+Migrate(app, db)
+manager = Manager(app)
+manager.add_command('db', MigrateCommand)
+
 
 @app.route('/')
 def index():
@@ -48,4 +58,4 @@ def index():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    manager.run()
